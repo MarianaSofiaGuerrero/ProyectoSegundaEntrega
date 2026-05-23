@@ -181,43 +181,82 @@ public class SecondaryController {
         }
     }
 
+//    private void ejecutarModificar() {
+//        try {
+//            String id = txtId.getText().trim();
+//            if (id.isEmpty()) {
+//                txtResultado.setText("Error: ingrese el ID del insumo a modificar.");
+//                return;
+//            }
+//            Insumo modificado = new Insumo(
+//                id,
+//                txtNombre.getText().trim(),
+//                txtTipo.getText().trim(),
+//                txtUnidad.getText().trim(),
+//                Double.parseDouble(txtCantidad.getText().trim()),
+//                Double.parseDouble(txtPrecio.getText().trim()),
+//                txtProveedor.getText().trim(),
+//                txtFecha.getText().trim()
+//            );
+//            txtResultado.setText(PrimaryController.gestion.modificar(id, modificado));
+//        } catch (NumberFormatException e) {
+//            txtResultado.setText("Error: Cantidad y Precio deben ser números válidos.");
+//        }
+//    }
     private void ejecutarModificar() {
-        try {
-            String id = txtId.getText().trim();
-            if (id.isEmpty()) {
-                txtResultado.setText("Error: ingrese el ID del insumo a modificar.");
-                return;
-            }
-            Insumo modificado = new Insumo(
-                id,
-                txtNombre.getText().trim(),
-                txtTipo.getText().trim(),
-                txtUnidad.getText().trim(),
-                Double.parseDouble(txtCantidad.getText().trim()),
-                Double.parseDouble(txtPrecio.getText().trim()),
-                txtProveedor.getText().trim(),
-                txtFecha.getText().trim()
-            );
-            txtResultado.setText(PrimaryController.gestion.modificar(id, modificado));
-        } catch (NumberFormatException e) {
-            txtResultado.setText("Error: Cantidad y Precio deben ser números válidos.");
-        }
-    }
-
-    private void ejecutarEliminar() {
+    try {
         String id = txtId.getText().trim();
         if (id.isEmpty()) {
-            txtResultado.setText("Error: ingrese un ID para eliminar.");
+            txtResultado.setText("Error: ingrese el ID del insumo a modificar.");
             return;
         }
-        Insumo eliminado = PrimaryController.gestion.eliminar(id);
-        if (eliminado != null) {
-            txtResultado.setText("Insumo eliminado exitosamente:\n\n" + formatearInsumo(eliminado));
-            txtId.clear();
-        } else {
-            txtResultado.setText("No se encontró ningún insumo con ID: " + id);
+        
+        // Creamos el objeto con los nuevos datos de los campos de texto
+        Insumo modificado = new Insumo(
+            id,
+            txtNombre.getText().trim(),
+            txtTipo.getText().trim(),
+            txtUnidad.getText().trim(),
+            Double.parseDouble(txtCantidad.getText().trim()),
+            Double.parseDouble(txtPrecio.getText().trim()),
+            txtProveedor.getText().trim(),
+            txtFecha.getText().trim()
+        );
+        
+        // Se realiza la modificación en la lista en memoria
+        String resultado = PrimaryController.gestion.modificar(id, modificado);
+        txtResultado.setText(resultado);
+        
+        // --- SOLUCIÓN AQUÍ: Si no hubo errores, guardamos los cambios en el archivo binario al instante ---
+        if (resultado != null && !resultado.startsWith("Error")) {
+            PrimaryController.gestion.serializar();
         }
+        
+    } catch (NumberFormatException e) {
+        txtResultado.setText("Error: Cantidad y Precio deben ser números válidos.");
     }
+}
+
+    private void ejecutarEliminar() {
+    String id = txtId.getText().trim();
+    if (id.isEmpty()) {
+        txtResultado.setText("Error: ingrese un ID para eliminar.");
+        return;
+    }
+    
+    // Elimina de la lista en memoria de JavaFX
+    Insumo eliminado = PrimaryController.gestion.eliminar(id); 
+    
+    if (eliminado != null) {
+        // --- CRUCIAL: Guarda los cambios en el archivo binario inmediatamente ---
+        PrimaryController.gestion.serializar(); 
+        
+        txtResultado.setText("Insumo eliminado exitosamente:\n\n" + formatearInsumo(eliminado));
+        txtId.clear();
+    } else {
+        txtResultado.setText("No se encontró ningún insumo con ID: " + id);
+    }
+}
 
     private String formatearInsumo(Insumo ins) {
         return  "  ID:                " + ins.getId() + "\n" +
